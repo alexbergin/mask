@@ -51,11 +51,13 @@
 			document.getElementById("base").src = document.getElementById("inputImage").src;
 
 			imgMask = new mask();
-
+			
 			imgMask.settings({
 				mask: document.getElementById("mask"),
 				overlay: document.getElementById("over"),
 				size: "mask",
+				aInvert: false,
+				cInvert: false,
 			});
 
 			imgMask.gen( document.getElementById("base"));

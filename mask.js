@@ -3,7 +3,9 @@ var mask = function(){
 	var pref = {
 		mask: undefined,
 		overlay: undefined,
-		size: "mask",
+		size: "base",
+		aInvert: false,
+		cInvert: false,
 	}
 
 	this.gen = function( image ){
@@ -22,7 +24,7 @@ var mask = function(){
 				over: undefined,
 			},
 
-			draw: function( src ){
+			draw: function( src , save ){
 				var ratio = 0,
 					drawing = {
 						x: 0,
@@ -45,10 +47,13 @@ var mask = function(){
 				drawing.y = ( this.data.height - drawing.h ) / 2;
 
 				this.data.canvas.drawImage( src , drawing.x , drawing.y , drawing.w , drawing.h );
-				imgData = this.data.canvas.getImageData( 0 , 0 , this.data.width , this.data.height );
-				this.data.canvas.clearRect( 0 , 0 , this.data.width , this.data.height );
 
-				return imgData;
+				if ( typeof save == "undefined" || save == false ){
+					imgData = this.data.canvas.getImageData( 0 , 0 , this.data.width , this.data.height );
+					this.data.canvas.clearRect( 0 , 0 , this.data.width , this.data.height );
+
+					return imgData;
+				}
 			},
 
 			init: function(){
@@ -63,23 +68,31 @@ var mask = function(){
 
 			check: function(){
 				// find any errors
-				if ( pref.size == "mask" || pref.size == "overlay" ){
+				if ( pref.size == "mask" || pref.size == "overlay" || pref.size == "base" ){
+					
 					if ( pref.size == "mask" && pref.mask != undefined ){
 						this.data.width = pref.mask.width;
 						this.data.height = pref.mask.height;
 					} else {
-						if ( pref.size != "overlay" ){
+						if ( pref.size != "overlay" && pref.size != "base" ){
 							error("mask must be defined to scale to mask");
 						}
 					}
+					
 					if ( pref.size == "overlay" && pref.overlay != undefined ){
 						this.data.width = pref.overlay.width;
 						this.data.height = pref.overlay.height;
 					} else {
-						if ( pref.size != "mask" ){
+						if ( pref.size != "mask" && pref.size != "base" ){
 							error("overlay must be defined to scale to overlay");
 						}
 					}
+
+					if ( pref.size == "base" ){
+						this.data.width = image.width;
+						this.data.height = image.height;
+					}
+
 				} else {
 					error("invalid size definition: use a string 'mask'  or 'overlay'");
 				}
@@ -121,7 +134,7 @@ var mask = function(){
 				if ( this.layers.over != undefined ){
 					
 					this.data.canvas.putImageData( this.layers.base , 0 , 0 );
-					this.data.canvas.drawImage( pref.overlay , 0 , 0 );
+					this.draw( pref.overlay , true );
 
 					this.layers.base = this.data.canvas.getImageData( 0 , 0 , this.data.width , this.data.width );
 					this.data.canvas.clearRect( 0 , 0 , this.data.width , this.data.height );
@@ -136,8 +149,20 @@ var mask = function(){
 					for ( var i = 0 , idur = imageData.length ; i < idur ; i += 4 ){
 						var initA = imageData[ i + 0 ] + imageData[ i + 1 ] + imageData[ i + 2 ];
 
-						initA = ( 255 - ( initA / 3 )) * ( imageData[ i + 3 ] / 255 );
-
+						if ( pref.cInvert != true ){
+							if ( pref.aInvert != true ){
+								initA = ( 255 - ( initA / 3 )) * ( imageData[ i + 3 ] / 255 );
+							} else {
+								initA = ( 255 - ( initA / 3 )) * (( 255 - imageData[ i + 3 ] ) / 255 );
+							}
+						} else {
+							if ( pref.aInvert != true ){
+								initA = ( initA / 3 ) * ( imageData[ i + 3 ] / 255 );
+							} else {
+								initA = ( initA / 3 ) * (( 255 - imageData[ i + 3 ] ) / 255 );
+							}
+						}
+						
 						imageBase[ i + 3 ] = initA;
 					}
 
@@ -152,7 +177,6 @@ var mask = function(){
 			},
 
 			destroy: function(){
-				
 				this.data.domCan.parentNode.removeChild( this.data.domCan );
 			}
 
@@ -192,6 +216,12 @@ var mask = function(){
 		},
 		overlay: function( src ){
 			pref.overlay = src;
+		},
+		aInvert: function( bool ){
+			pref.aInvert = bool;
+		},
+		cInvert: function( bool ){
+			pref.cInvert = bool;
 		},
 	}
 
