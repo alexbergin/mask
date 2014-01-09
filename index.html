@@ -1,9 +1,65 @@
 <html>
 	<head>
 		<script src="mask.js"></script>
-		<script src="main.js"></script>
+		<style>
+			html , body {
+				padding: 0px;
+				margin: 0px;
+				background-color: #0d1012;
+				white-space: nowrap;
+			}
+
+			div {
+				padding: 18px;
+				display: inline-block;
+				margin: 18px;
+				margin-bottom: 0px;
+				margin-right: 0px;
+				background-color: rgba(255,255,255,0.1);
+			}
+
+			div p {
+				font-family: Helvetica;
+				font-weight: 900;
+				line-height: 36px;
+				font-size: 21px;
+				color: #e7ebf3;
+				margin-top: 0px;
+			}
+		</style>
 	</head>
 	<body>
-		<img src="images/cat.jpg" />
+		<div>
+			<p>Starting image</p>
+			<img id="inputImage" src="images/cybertron.jpg" />
+		</div><br />
+		<div>
+			<p>Output image</p>
+			<img id="base" src="" />
+		</div><div>
+			<p>Image mask</p>
+			<img id="mask" src="images/large_mask.png" />
+		</div><div>
+			<p>Image overlay</p>
+			<img id="over" src="images/large_over.png" />
+		</div>
 	</body>
+	<script>
+		var imgMask;
+		window.onload = function(){
+
+			document.getElementById("base").src = document.getElementById("inputImage").src;
+
+			imgMask = new mask();
+
+			imgMask.settings({
+				mask: document.getElementById("mask"),
+				overlay: document.getElementById("over"),
+				size: "mask",
+			});
+
+			imgMask.gen( document.getElementById("base"));
+
+		}
+	</script>
 </html>
