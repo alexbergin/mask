@@ -68,13 +68,17 @@ var mask = function(){
 						this.data.width = pref.mask.width;
 						this.data.height = pref.mask.height;
 					} else {
-						error("mask must be defined to scale to mask");
+						if ( pref.size != "overlay" ){
+							error("mask must be defined to scale to mask");
+						}
 					}
 					if ( pref.size == "overlay" && pref.overlay != undefined ){
 						this.data.width = pref.overlay.width;
 						this.data.height = pref.overlay.height;
 					} else {
-						error("overlay must be defined to scale to overlay");
+						if ( pref.size != "mask" ){
+							error("overlay must be defined to scale to overlay");
+						}
 					}
 				} else {
 					error("invalid size definition: use a string 'mask'  or 'overlay'");
@@ -130,7 +134,11 @@ var mask = function(){
 						imageBase = this.layers.base.data;
 
 					for ( var i = 0 , idur = imageData.length ; i < idur ; i += 4 ){
-						imageBase[ i + 3 ] = imageData[ i + 3 ];
+						var initA = imageData[ i + 0 ] + imageData[ i + 1 ] + imageData[ i + 2 ];
+
+						initA = ( 255 - ( initA / 3 )) * ( imageData[ i + 3 ] / 255 );
+
+						imageBase[ i + 3 ] = initA;
 					}
 
 					this.layers.base.data = imageBase;
@@ -146,19 +154,6 @@ var mask = function(){
 			destroy: function(){
 				
 				this.data.domCan.parentNode.removeChild( this.data.domCan );
-
-				this.data = {
-					width: 0,
-					height: 0,
-					domCan: undefined,
-					canvas: undefined,
-				}
-
-				this.layers = {
-					base: undefined,
-					mask: undefined,
-					over: undefined,
-				}
 			}
 
 		};
@@ -203,5 +198,6 @@ var mask = function(){
 	var error = function( message ){
 		var string = "mask.js err: " + message;
 		console.log( string );
+		return;
 	}
 }
